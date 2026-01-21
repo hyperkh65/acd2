@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ItemType {
+  TOOL
+  MODEL
+}
+
+model Item {
+  id              String   @id @default(cuid())
+  type            ItemType
+  name            String
+  slug            String   @unique
+  url             String   @unique
+  domain          String
+  faviconUrl      String?
+  oneLine         String?
+  summary         String?
+  tags            String[] @default([])
+  category        String?  // Image|Video|Writing|Coding|Marketing|Automation|Chatbot|Other
+  pricing         String?  // free|paid|freemium|unknown
+
+  // Common filters
+  supportsKorean  Boolean  @default(false)
+  hasApi          Boolean  @default(false)
+  requiresLogin   Boolean  @default(false)
+
+  // Model-specific
+  provider        String?
+  modality        String?  // text|image|video|audio|multimodal
+  openWeights     Boolean  @default(false)
+  localRun        Boolean  @default(false)
+
+  source          String?
+  sourceUrl       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastSeenAt      DateTime @default(now())
+
+  events          Event[]
+  collectionItems CollectionItem[]
+
+  @@index([type])
+  @@index([category])
+  @@index([domain])
+  @@index([createdAt])
+}
+
+enum EventType {
+  VIEW
+  SAVE
+  OUTBOUND
+  SHARE
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  type      EventType
+  itemId    String?
+  item      Item?     @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+  ua        String?
+  ipHash    String?
+  ref       String?
+  meta      Json?
+  @@index([type, createdAt])
+  @@index([itemId, createdAt])
+}
+
+model CollectionShare {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  title     String
+  note      String?
+  createdAt DateTime @default(now())
+  items     CollectionItem[]
+}
+
+model CollectionItem {
+  id        String          @id @default(cuid())
+  shareId   String
+  share     CollectionShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  order     Int             @default(0)
+  @@unique([shareId, itemId])
+  @@index([shareId, order])
+}
+
+model Workflow {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  summary   String
+  steps     Json     // [{title, description, itemSlug?}]
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([createdAt])
+}
+

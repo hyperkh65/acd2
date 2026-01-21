@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "DATABASE_URL": "postgresql://neondb_owner:npg_iy5TFN0MUVdw@ep-divine-voice-a118p3f1-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+      "DIRECT_URL": "postgresql://neondb_owner:npg_iy5TFN0MUVdw@ep-divine-voice-a118p3f1.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}
