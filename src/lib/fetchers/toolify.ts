@@ -2,12 +2,20 @@ import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
 import type { Element } from "domhandler";
 
-export type ToolifyItem = {
+/**
+ * sync.ts 및 다른 fetcher들과 공통으로 쓰는 타입
+ */
+export type Candidate = {
   name: string;
   url: string;
   description?: string;
   logo?: string;
 };
+
+/**
+ * Toolify 전용 alias (기존 코드 호환용)
+ */
+export type ToolifyItem = Candidate;
 
 const BASE_URL = "https://www.toolify.ai";
 
@@ -20,14 +28,13 @@ function pickName($: CheerioAPI, a: Element): string {
   const title = ($a.attr("title") ?? "").trim();
   if (title) return title.slice(0, 80);
 
-  const text = $a.text().trim();
-  return text.slice(0, 80);
+  return $a.text().trim().slice(0, 80);
 }
 
 /**
- * Toolify 메인/카테고리 페이지 스캔
+ * Toolify 메인 페이지에서 툴 목록 스캔
  */
-export async function fetchToolify(): Promise<ToolifyItem[]> {
+export async function fetchToolifyNew(): Promise<Candidate[]> {
   const res = await fetch(BASE_URL, {
     headers: {
       "user-agent":
@@ -43,7 +50,7 @@ export async function fetchToolify(): Promise<ToolifyItem[]> {
   const html = await res.text();
   const $ = cheerio.load(html);
 
-  const items: ToolifyItem[] = [];
+  const items: Candidate[] = [];
   const seen = new Set<string>();
 
   $("a[href^='/tool/']").each((_, el) => {
@@ -73,4 +80,12 @@ export async function fetchToolify(): Promise<ToolifyItem[]> {
   });
 
   return items.slice(0, 100);
+}
+
+/**
+ * (옵션) 모델/카테고리 페이지용 – 현재는 신규와 동일 처리
+ * sync.ts에서 import 에러 안 나게 유지
+ */
+export async function fetchToolifyModels(): Promise<Candidate[]> {
+  return fetchToolifyNew();
 }
