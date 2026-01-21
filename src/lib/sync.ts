@@ -30,7 +30,7 @@ export async function runSync(
   candidates.push(...(await fetchToolifyNew()));
   candidates.push(...(await fetchToolifyModels()));
 
-  // Futurepedia (구조 호환됨)
+  // Futurepedia
   candidates.push(...(await fetchFuturepediaRecent()));
 
   let inserted = 0;
@@ -44,7 +44,7 @@ export async function runSync(
     });
     if (exists) continue;
 
-    // 🔑 summarizeItem이 요구하는 입력 형태로 맞춘다
+    // ❗❗❗ 여기 중요: description 절대 없음
     const summary = await summarizeItem({
       type: "TOOL",
       name: c.name,
